@@ -25,15 +25,15 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        #toastBox { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; }
-        .toast { background: rgba(0,0,0,0.95); border: 2px solid var(--gold); padding: 15px 40px; margin-bottom: 10px; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; transform: translateY(-30px); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 15px; text-transform: uppercase; color: var(--gold); pointer-events: auto; }
+        #toastBox { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; width: 300px; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: rgba(0,0,0,0.95); border: 2px solid var(--gold); padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; transform: translateY(-30px); animation: slideIn 0.3s forwards; display: flex; align-items: center; justify-content: center; gap: 15px; text-transform: uppercase; color: var(--gold); pointer-events: auto; }
         .toast.error { border-color: #ff4444; color: #ff4444; }
         @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
 
         .hidden { display: none !important; } .fade-in { animation: fadeIn 0.5s; }
 
         /* AUTH */
-        #authOverlay { position: fixed; inset: 0; background: url('background.jpg') no-repeat center center fixed; background-size: cover; z-index: 3000; display: flex; justify-content: center; align-items: center; }
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('background.jpg') no-repeat center center fixed; background-size: cover; z-index: 3000; display: flex; justify-content: center; align-items: center; }
         .auth-box { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 40px; border-radius: 16px; width: 350px; text-align: center; }
         .auth-input { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; padding: 15px; width: 100%; margin-bottom: 15px; text-align: center; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 18px; outline: none; box-sizing: border-box; }
         .auth-btn { background: var(--gold); border: none; padding: 15px; width: 100%; font-weight: 800; font-size: 20px; cursor: pointer; border-radius: 8px; color: #000; text-transform: uppercase; transition: 0.2s; }
@@ -86,7 +86,6 @@
         .user-name { font-size: 20px; font-weight: 700; }
         .balance-amount { font-size: 24px; color: var(--gold); font-weight: 800; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         
-        /* MUSIC PANEL - REDESIGNED */
         .music-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .music-pill { 
             display: flex; align-items: center; gap: 20px; 
@@ -98,15 +97,9 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
             width: 160px; overflow: hidden;
         }
-        .title-wrap {
-            width: 100%; overflow: hidden; white-space: nowrap; text-align: center;
-        }
-        .music-title {
-            font-size: 14px; font-weight: 700; color: white; display: inline-block;
-        }
-        .music-artist {
-            font-size: 11px; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
-        }
+        .title-wrap { width: 100%; overflow: hidden; white-space: nowrap; text-align: center; }
+        .music-title { font-size: 14px; font-weight: 700; color: white; display: inline-block; }
+        .music-artist { font-size: 11px; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
         .marquee { animation: scroll-left 8s linear infinite; padding-left: 100%; }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
@@ -155,6 +148,18 @@
         .card-label { font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8; text-align: left; }
         .card-amount { font-size: 24px; font-weight: 800; text-align: center; }
         .bet-card.has-bet { border-color: white; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+        /* CENTERED VICTORY MODAL */
+        #winModal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 5000; 
+            display: flex; justify-content: center; align-items: center; 
+            opacity: 0; pointer-events: none; transition: 0.3s; 
+        }
+        #winModal.show { opacity: 1; pointer-events: auto; }
+        .win-card { background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 16px; text-align: center; min-width: 250px; }
+        .win-title { font-size: 40px; font-weight: 800; color: var(--gold); margin-bottom: 10px; }
+        .win-total { font-size: 30px; font-weight: 700; margin-bottom: 15px; }
 
         @media (max-width: 768px) {
             .main-container { display: flex; flex-direction: column; width: 100%; height: 100vh; max-width: 100%; gap: 0; }
@@ -445,4 +450,3 @@
     </script>
 </body>
 </html>
-
