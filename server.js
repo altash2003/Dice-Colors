@@ -161,17 +161,20 @@ io.on('connection', (socket) => {
         if (!username || gameState !== 'BETTING') return;
         let cost = parseInt(data.amount);
         
+        // Server-side Double Check
         if (users[username].balance >= cost) {
             users[username].balance -= cost; 
             saveDatabase();
-            
-            socket.emit('update_balance', users[username].balance);
+            // We do NOT emit update_balance here anymore to prevent jumping. 
+            // The client already deducted it optimistically.
+            // We only emit if there was an error.
             
             roundBets.push({ socketId: socket.id, username: username, color: data.color, amount: cost });
             globalColorBets[data.color] += cost;
             io.emit('update_global_bets', globalColorBets);
         } else { 
             socket.emit('bet_error', "INSUFFICIENT CREDITS"); 
+            socket.emit('update_balance', users[username].balance); // Re-sync if failed
         }
     });
 
@@ -244,15 +247,16 @@ io.on('connection', (socket) => {
         for (let [id, name] of Object.entries(activePlayers)) {
             if (name === data.targetUser) io.to(id).emit('chat_broadcast', { user: "ADMIN", msg: data.msg, type: 'support_reply' });
         }
-        // 2. Save to history so it persists
-        let replyObj = { user: `To ${data.targetUser}`, msg: data.msg, time: Date.now() };
-        supportHistory.push(replyObj);
+        // 2. Save Log with Specific Format
+        let formattedMsg = `To ${data.targetUser}: ${data.msg}`;
+        let replyLog = { user: "ADMIN", msg: formattedMsg, time: Date.now(), isReply: true };
+        supportHistory.push(replyLog);
         
-        // 3. Send back to Admin
-        socket.emit('chat_broadcast', { user: `To ${data.targetUser}`, msg: data.msg, type: 'support_log_echo', target: data.targetUser });
+        // 3. Echo to Admin
+        socket.emit('chat_broadcast', { user: "ADMIN", msg: formattedMsg, type: 'support_log_echo' });
     });
 
-    socket.on('admin_announce', (msg) => io.emit('notification', { msg: msg, duration: 5000 })); // 5 Seconds
+    socket.on('admin_announce', (msg) => io.emit('notification', { msg: msg, duration: 5000 })); 
 
     socket.on('admin_update_metadata', (data) => {
         if(data.title) musicState.title = data.title; 
