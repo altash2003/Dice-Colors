@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Color Game</title>
+    <title>Fantasy Color Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,18 +25,10 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* NOTIFICATION BOX - FIXED Z-INDEX */
-        #toastBox { 
-            position: fixed; top: 50px; left: 50%; transform: translateX(-50%); 
-            z-index: 20000 !important; width: 300px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; 
-        }
-        .toast { 
-            background: rgba(0,0,0,0.95); border: 2px solid var(--gold); 
-            padding: 15px; border-radius: 8px; font-weight: bold; font-size: 18px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,1); color: var(--gold); text-transform: uppercase;
-            animation: slideDown 0.3s forwards; pointer-events: auto;
-        }
-        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #toastBox { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; }
+        .toast { background: rgba(0,0,0,0.95); border: 2px solid var(--gold); padding: 15px 40px; margin-bottom: 10px; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; transform: translateY(-30px); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 15px; text-transform: uppercase; color: var(--gold); pointer-events: auto; }
+        .toast.error { border-color: #ff4444; color: #ff4444; }
+        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
 
         .hidden { display: none !important; } .fade-in { animation: fadeIn 0.5s; }
 
@@ -88,15 +80,36 @@
         }
 
         .hud-header { 
-            padding: 15px 20px; position: relative; display: flex; justify-content: space-between; align-items: center; 
-            background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); height: 50px;
+            padding: 15px 25px; position: relative; display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); height: 60px;
         }
         .user-name { font-size: 20px; font-weight: 700; }
         .balance-amount { font-size: 24px; color: var(--gold); font-weight: 800; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         
+        /* MUSIC PANEL - REDESIGNED */
         .music-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        .music-pill { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--border); }
-        .song-info { width: 120px; overflow: hidden; white-space: nowrap; font-size: 12px; color: #aaa; }
+        .music-pill { 
+            display: flex; align-items: center; gap: 20px; 
+            background: rgba(0,0,0,0.7); padding: 8px 25px; 
+            border-radius: 12px; border: 1px solid var(--border); 
+            min-width: 250px;
+        }
+        .song-container { 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            width: 160px; overflow: hidden;
+        }
+        .title-wrap {
+            width: 100%; overflow: hidden; white-space: nowrap; text-align: center;
+        }
+        .music-title {
+            font-size: 14px; font-weight: 700; color: white; display: inline-block;
+        }
+        .music-artist {
+            font-size: 11px; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+        }
+        .marquee { animation: scroll-left 8s linear infinite; padding-left: 100%; }
+        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
         .vol-slider { width: 70px; accent-color: var(--gold); cursor: pointer; }
 
         .game-focus { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -142,12 +155,6 @@
         .card-label { font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8; text-align: left; }
         .card-amount { font-size: 24px; font-weight: 800; text-align: center; }
         .bet-card.has-bet { border-color: white; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
-
-        #winModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
-        #winModal.show { opacity: 1; pointer-events: auto; }
-        .win-card { background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 16px; text-align: center; min-width: 250px; }
-        .win-title { font-size: 40px; font-weight: 800; color: var(--gold); margin-bottom: 10px; }
-        .win-total { font-size: 30px; font-weight: 700; margin-bottom: 15px; }
 
         @media (max-width: 768px) {
             .main-container { display: flex; flex-direction: column; width: 100%; height: 100vh; max-width: 100%; gap: 0; }
@@ -197,13 +204,18 @@
                     <div style="font-size:10px; color:#aaa; font-weight:700;">PLAYER</div>
                     <div class="user-name" id="displayUser">GUEST</div>
                 </div>
+                
                 <div class="music-center">
                     <div class="music-pill">
-                        <i class="fas fa-music" style="color:var(--gold);"></i>
-                        <div class="song-info"><span id="musicText">Waiting...</span></div>
+                        <i class="fas fa-music" style="color:var(--gold); font-size:18px;"></i>
+                        <div class="song-container">
+                            <div class="title-wrap"><span id="musicTitle" class="music-title">Waiting...</span></div>
+                            <div id="musicArtist" class="music-artist"></div>
+                        </div>
                         <input type="range" class="vol-slider" min="0.05" max="0.5" step="0.05" onchange="document.getElementById('bgMusic').volume=this.value">
                     </div>
                 </div>
+
                 <div style="text-align:right;">
                     <div style="font-size:10px; color:#aaa; font-weight:700;">CREDITS</div>
                     <div class="balance-amount" id="balance">0</div>
@@ -223,6 +235,7 @@
                         <div class="chip" onclick="selectChip(100, this)">100</div>
                         <div class="chip" onclick="selectChip(500, this)">500</div>
                         <div class="chip" onclick="selectChip(1000, this)">1K</div>
+                        <div class="chip" onclick="selectChip(10000, this)">10K</div>
                     </div>
                     <div style="display:flex; gap:10px;">
                         <button class="btn-action" onclick="undoBet()"><i class="fas fa-undo"></i> UNDO</button>
@@ -320,7 +333,7 @@
                 return; 
             }
 
-            isBetting = true; setTimeout(() => { isBetting = false; }, 200); // 200ms throttle
+            isBetting = true; setTimeout(() => { isBetting = false; }, 200);
 
             // Optimistic update
             currentBalance -= selectedChip;
@@ -386,15 +399,27 @@
             list.forEach(name => el.innerHTML += `<div class="pl-item"><i class="fas fa-circle"></i> ${name}</div>`);
         });
 
+        // UPDATED MUSIC HANDLER
         socket.on('music_sync', (data) => {
-            const txt = document.getElementById('musicText');
-            let title = data.title || "Waiting..."; if(data.artist) title += ` - ${data.artist}`;
-            txt.innerText = title;
-            if(title.length > 25) txt.className = "song-info marquee"; else txt.className = "song-info";
+            const titleEl = document.getElementById('musicTitle');
+            const artistEl = document.getElementById('musicArtist');
+            
+            // Set Title & Artist
+            let titleText = data.title || "Waiting for DJ...";
+            titleEl.innerText = titleText;
+            artistEl.innerText = data.artist || "";
+
+            // Marquee Logic
+            if(titleText.length > 20) titleEl.className = "music-title marquee";
+            else titleEl.className = "music-title";
+
             if(data.url && bgMusic.src !== data.url) bgMusic.src = data.url;
             if(data.playing) { if(Math.abs(bgMusic.currentTime - data.seek) > 2) bgMusic.currentTime = data.seek; bgMusic.play().catch(e=>{}); } else { bgMusic.pause(); }
         });
-        socket.on('metadata_update', (data) => { const txt = document.getElementById('musicText'); let title = data.title || "Waiting..."; if(data.artist) title += ` - ${data.artist}`; txt.innerText = title; });
+        socket.on('metadata_update', (data) => { 
+            document.getElementById('musicTitle').innerText = data.title || "Waiting..."; 
+            document.getElementById('musicArtist').innerText = data.artist || ""; 
+        });
         socket.on('music_track_changed', (data) => { bgMusic.src = data.url; bgMusic.play(); });
 
         function switchChat(type) {
