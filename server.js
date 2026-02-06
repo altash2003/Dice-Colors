@@ -7,64 +7,83 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// DATABASE
 const DB_FILE = 'database.json';
-let users = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE)) : {};
+let users = {};
+if (fs.existsSync(DB_FILE)) { users = JSON.parse(fs.readFileSync(DB_FILE)); }
 
-app.use(express.static(__dirname));
+function saveDatabase() { fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2)); }
+
+app.use(express.static(__dirname)); 
+
+// GAME CONSTANTS
 const COLORS = ['RED', 'GREEN', 'BLUE', 'YELLOW', 'PINK', 'WHITE'];
 let timeLeft = 20;
-let roundBets = [];
-let activePlayers = {};
+let activePlayers = {}; 
+let roundBets = []; 
 
+// GAME LOOP
 setInterval(() => {
     timeLeft--;
     if (timeLeft < 0) {
         let result = [COLORS[Math.floor(Math.random()*6)], COLORS[Math.floor(Math.random()*6)], COLORS[Math.floor(Math.random()*6)]];
-        io.emit('game_result', result);
-        processWinners(result);
+        io.emit('game_result', result); 
+        processWinners(result);         
         roundBets = [];
-        timeLeft = 25; // Reset cycle
+        timeLeft = 25; // 5 seconds to show result, then 20 for next round
     } else if (timeLeft <= 20) {
         io.emit('timer_update', timeLeft);
     }
 }, 1000);
 
 function processWinners(diceResult) {
-    let userWins = {};
+    let userBets = {}; 
     roundBets.forEach(bet => {
-        let matches = diceResult.filter(d => d === bet.color).length;
-        if (matches > 0) {
-            let win = bet.amount * (matches + 1);
-            userWins[bet.username] = (userWins[bet.username] || 0) + win;
-            users[bet.username].balance += win;
-        }
+        if(!userBets[bet.username]) userBets[bet.username] = { socketId: bet.socketId, bets: {} };
+        if(!userBets[bet.username].bets[bet.color]) userBets[bet.username].bets[bet.color] = 0;
+        userBets[bet.username].bets[bet.color] += bet.amount;
     });
-    fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
-    for (let user in userWins) {
-        let sid = Object.keys(activePlayers).find(k => activePlayers[k] === user);
-        if (sid) {
-            io.to(sid).emit('win_notification', { total: userWins[user] });
-            io.to(sid).emit('update_balance', users[user].balance);
+
+    for (let [username, data] of Object.entries(userBets)) {
+        let totalWin = 0;
+        for(let [color, amount] of Object.entries(data.bets)) {
+            let matches = diceResult.filter(die => die === color).length;
+            if (matches > 0) {
+                let multiplier = matches + 1;
+                totalWin += amount * multiplier;
+            }
+        }
+        if(totalWin > 0) {
+            users[username].balance += totalWin;
+            saveDatabase();
+            io.to(data.socketId).emit('win_notification', { total: totalWin });
+            io.to(data.socketId).emit('update_balance', users[username].balance);
         }
     }
 }
 
 io.on('connection', (socket) => {
     socket.on('login', (data) => {
-        if (!users[data.username]) users[data.username] = { password: data.password, balance: 1000 };
+        if (!users[data.username]) {
+            users[data.username] = { password: data.password, balance: 1000 };
+            saveDatabase();
+        }
         activePlayers[socket.id] = data.username;
         socket.emit('login_success', { username: data.username, balance: users[data.username].balance });
     });
 
     socket.on('place_bet', (data) => {
-        let user = activePlayers[socket.id];
-        if (user && users[user].balance >= data.amount) {
-            users[user].balance -= data.amount;
-            roundBets.push({ username: user, color: data.color, amount: data.amount });
+        let username = activePlayers[socket.id];
+        if (username && users[username].balance >= data.amount) {
+            users[username].balance -= data.amount;
+            saveDatabase();
+            roundBets.push({ socketId: socket.id, username: username, color: data.color, amount: data.amount });
         }
     });
 
-    socket.on('disconnect', () => delete activePlayers[socket.id]);
+    socket.on('disconnect', () => { delete activePlayers[socket.id]; });
 });
 
-server.listen(3000, () => console.log('Server live on port 3000'));
+// RAILWAY PORT BINDING
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
