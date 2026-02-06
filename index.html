@@ -4,6 +4,7 @@
     <title>Color Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -121,16 +122,74 @@
 
         .betting-panel { padding: 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); }
         .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .chip-rack { display: flex; gap: 8px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 30px; }
-        .chip { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #444; background: #222; color: #888; font-weight: 700; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .chip.active { border-color: var(--gold); color: var(--gold); background: rgba(255, 215, 0, 0.1); transform: scale(1.1); }
+        
+        /* --- NEW PREMIUM CHIPS CSS --- */
+        .chip-rack { display: flex; gap: 15px; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 50px; align-items: center; }
+        
+        .chip {
+            width: 50px; height: 50px; 
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .chip:hover { transform: scale(1.1); }
+        .chip.active { transform: scale(1.15) translateY(-5px); z-index: 101; box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
+
+        /* The Stripes */
+        .chip::before {
+            content: ''; position: absolute; inset: 0; border-radius: 50%;
+            background: repeating-conic-gradient(var(--c-base) 0deg 15deg, var(--c-light) 15deg 30deg, var(--c-base) 30deg 45deg, var(--c-dark) 45deg 60deg);
+            z-index: 1;
+        }
+        /* The Inner Ring */
+        .chip::after {
+            content: ''; position: absolute; inset: 5px; 
+            border-radius: 50%;
+            background: var(--c-base); border: 1px solid rgba(0,0,0,0.2);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        /* The Label */
+        .chip-label {
+            position: relative; z-index: 10;
+            width: 28px; height: 28px;
+            background: #fdfbf7; border-radius: 50%; border: 1px solid #d4d4d4;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 10px; font-weight: 800; color: #333; letter-spacing: -0.5px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        /* Gloss Overlay */
+        .chip-overlay {
+            position: absolute; inset: 0; border-radius: 50%; z-index: 20; pointer-events: none;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25) 0%, transparent 40%);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .chip.active .chip-overlay { box-shadow: 0 0 0 2px #fff, 0 0 15px var(--c-light); }
+
+        /* Colors definition */
+        .chip-50 { --c-base: #e0dfd5; --c-light: #ffffff; --c-dark: #b0b0a8; }
+        .chip-100 { --c-base: #6b1818; --c-light: #a32e2e; --c-dark: #3b0505; }
+        .chip-1k { --c-base: #1e4d2b; --c-light: #367a48; --c-dark: #0d2613; }
+        .chip-10k { --c-base: #142850; --c-light: #2c4d87; --c-dark: #050e21; }
+        .chip-100k { --c-base: #262626; --c-light: #444444; --c-dark: #000000; }
+
+        /* Placed Chips on Board */
+        .marker-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; pointer-events: none; }
+        .marker-chip { width: 34px; height: 34px; font-size: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .marker-chip .chip-label { width: 20px; height: 20px; font-size: 8px; }
+        .marker-chip::after { inset: 3px; }
 
         .btn-action { background: rgba(255,255,255,0.1); border: 1px solid #555; color: white; padding: 8px 20px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
         .btn-action:hover { background: rgba(255,255,255,0.2); }
 
         .bet-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
         .bet-card { 
-            height: 100px; border-radius: 8px; cursor: pointer; position: relative;
+            height: 120px; border-radius: 8px; cursor: pointer; position: relative;
             display: flex; flex-direction: column; justify-content: space-between; padding: 10px;
             transition: 0.1s; border: 2px solid rgba(255,255,255,0.1);
         }
@@ -146,7 +205,8 @@
         .bg-YELLOW { background: linear-gradient(135deg, #fbc02d, #f57f17); color: black; }
 
         .card-label { font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8; text-align: left; }
-        .card-amount { font-size: 24px; font-weight: 800; text-align: center; }
+        /* Hide text amount if chip is present, or style it smaller */
+        .card-amount { font-size: 14px; font-weight: 800; text-align: right; opacity: 0.7; margin-top: auto; } 
         .bet-card.has-bet { border-color: white; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
         /* CENTERED VICTORY MODAL */
@@ -236,11 +296,21 @@
             <div class="betting-panel">
                 <div class="controls-bar">
                     <div class="chip-rack">
-                        <div class="chip active" onclick="selectChip(50, this)">50</div>
-                        <div class="chip" onclick="selectChip(100, this)">100</div>
-                        <div class="chip" onclick="selectChip(500, this)">500</div>
-                        <div class="chip" onclick="selectChip(1000, this)">1K</div>
-                        <div class="chip" onclick="selectChip(10000, this)">10K</div>
+                        <div class="chip chip-50 active" onclick="selectChip(50, this)">
+                            <div class="chip-overlay"></div><div class="chip-label">50</div>
+                        </div>
+                        <div class="chip chip-100" onclick="selectChip(100, this)">
+                            <div class="chip-overlay"></div><div class="chip-label">100</div>
+                        </div>
+                        <div class="chip chip-1k" onclick="selectChip(1000, this)">
+                            <div class="chip-overlay"></div><div class="chip-label">1K</div>
+                        </div>
+                        <div class="chip chip-10k" onclick="selectChip(10000, this)">
+                            <div class="chip-overlay"></div><div class="chip-label">10K</div>
+                        </div>
+                        <div class="chip chip-100k" onclick="selectChip(100000, this)">
+                            <div class="chip-overlay"></div><div class="chip-label">100K</div>
+                        </div>
                     </div>
                     <div style="display:flex; gap:10px;">
                         <button class="btn-action" onclick="undoBet()"><i class="fas fa-undo"></i> UNDO</button>
@@ -249,12 +319,30 @@
                 </div>
 
                 <div class="bet-grid">
-                    <div class="bet-card bg-RED" onclick="placeBet('RED')" id="card-RED"><div class="card-label">RED</div> <div class="card-amount" id="bet-RED">0</div></div>
-                    <div class="bet-card bg-GREEN" onclick="placeBet('GREEN')" id="card-GREEN"><div class="card-label">GREEN</div> <div class="card-amount" id="bet-GREEN">0</div></div>
-                    <div class="bet-card bg-BLUE" onclick="placeBet('BLUE')" id="card-BLUE"><div class="card-label">BLUE</div> <div class="card-amount" id="bet-BLUE">0</div></div>
-                    <div class="bet-card bg-PINK" onclick="placeBet('PINK')" id="card-PINK"><div class="card-label">PINK</div> <div class="card-amount" id="bet-PINK">0</div></div>
-                    <div class="bet-card bg-WHITE" onclick="placeBet('WHITE')" id="card-WHITE"><div class="card-label">WHITE</div> <div class="card-amount" id="bet-WHITE">0</div></div>
-                    <div class="bet-card bg-YELLOW" onclick="placeBet('YELLOW')" id="card-YELLOW"><div class="card-label">YELLOW</div> <div class="card-amount" id="bet-YELLOW">0</div></div>
+                    <div class="bet-card bg-RED" onclick="placeBet('RED')" id="card-RED">
+                        <div class="card-label">RED</div> 
+                        <div class="card-amount" id="bet-RED">0</div>
+                    </div>
+                    <div class="bet-card bg-GREEN" onclick="placeBet('GREEN')" id="card-GREEN">
+                        <div class="card-label">GREEN</div> 
+                        <div class="card-amount" id="bet-GREEN">0</div>
+                    </div>
+                    <div class="bet-card bg-BLUE" onclick="placeBet('BLUE')" id="card-BLUE">
+                        <div class="card-label">BLUE</div> 
+                        <div class="card-amount" id="bet-BLUE">0</div>
+                    </div>
+                    <div class="bet-card bg-PINK" onclick="placeBet('PINK')" id="card-PINK">
+                        <div class="card-label">PINK</div> 
+                        <div class="card-amount" id="bet-PINK">0</div>
+                    </div>
+                    <div class="bet-card bg-WHITE" onclick="placeBet('WHITE')" id="card-WHITE">
+                        <div class="card-label">WHITE</div> 
+                        <div class="card-amount" id="bet-WHITE">0</div>
+                    </div>
+                    <div class="bet-card bg-YELLOW" onclick="placeBet('YELLOW')" id="card-YELLOW">
+                        <div class="card-label">YELLOW</div> 
+                        <div class="card-amount" id="bet-YELLOW">0</div>
+                    </div>
                 </div>
             </div>
             
@@ -291,9 +379,15 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let selectedChip = 50; let currentRoundBets = {}; let currentBalance = 0; const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.25;
+        let selectedChip = 50; 
+        let currentRoundBets = {}; 
+        let currentBalance = 0; 
+        const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.25;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
+        // Track visual chips on cards (color -> {amount, element})
+        let activeChips = {};
+
         function playBeep(pitch) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.frequency.setValueAtTime(pitch, audioCtx.currentTime); osc.type='square'; gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+0.1); }
         function playWinSound() { [523,659,783,1046].forEach((f,i)=>setTimeout(()=>playBeep(f),i*100)); }
         function playCountdown() { playBeep(800); }
@@ -338,7 +432,7 @@
                 return; 
             }
 
-            isBetting = true; setTimeout(() => { isBetting = false; }, 200);
+            isBetting = true; setTimeout(() => { isBetting = false; }, 100);
 
             // Optimistic update
             currentBalance -= selectedChip;
@@ -346,12 +440,60 @@
 
             if(!currentRoundBets[color]) currentRoundBets[color] = 0;
             currentRoundBets[color] += selectedChip;
-            updateCard(color);
+            
+            // Visual Chip Update
+            renderCardChip(color, currentRoundBets[color]);
+            document.getElementById(`bet-${color}`).innerText = currentRoundBets[color]; 
+            document.getElementById(`card-${color}`).classList.add('has-bet');
 
             socket.emit('place_bet', { color: color, amount: selectedChip });
         }
 
-        function updateCard(color) { document.getElementById(`bet-${color}`).innerText = currentRoundBets[color]; document.getElementById(`card-${color}`).classList.add('has-bet'); }
+        // VISUAL CHIP RENDERER
+        function renderCardChip(color, totalAmount) {
+            if(totalAmount <= 0) {
+                if(activeChips[color]) { activeChips[color].remove(); delete activeChips[color]; }
+                return;
+            }
+
+            let styleClass = 'chip-50';
+            if (totalAmount >= 100000) styleClass = 'chip-100k';
+            else if (totalAmount >= 10000) styleClass = 'chip-10k';
+            else if (totalAmount >= 1000) styleClass = 'chip-1k';
+            else if (totalAmount >= 100) styleClass = 'chip-100';
+
+            // Find or Create Chip
+            if(!activeChips[color]) {
+                let wrapper = document.createElement('div');
+                wrapper.className = 'marker-wrapper';
+                
+                let chip = document.createElement('div');
+                chip.className = `chip marker-chip ${styleClass}`;
+                
+                let ov = document.createElement('div'); ov.className = 'chip-overlay';
+                let lb = document.createElement('div'); lb.className = 'chip-label';
+                lb.innerText = formatText(totalAmount);
+
+                chip.appendChild(ov); chip.appendChild(lb); wrapper.appendChild(chip);
+                
+                document.getElementById(`card-${color}`).appendChild(wrapper);
+                activeChips[color] = wrapper; // store wrapper for removal
+            } else {
+                let chip = activeChips[color].querySelector('.chip');
+                chip.className = `chip marker-chip ${styleClass}`;
+                chip.querySelector('.chip-label').innerText = formatText(totalAmount);
+                
+                // Pop animation
+                chip.style.transform = 'scale(1.3)';
+                setTimeout(() => chip.style.transform = 'scale(1)', 100);
+            }
+        }
+
+        function formatText(val) {
+            if (val >= 1000) return (val / 1000) + 'K';
+            return val;
+        }
+
         function undoBet() { socket.emit('undo_bet'); }
         function clearBets() { socket.emit('clear_bets'); }
         
@@ -359,13 +501,32 @@
             if(currentRoundBets[data.color]) {
                 currentRoundBets[data.color] -= data.amount;
                 if(currentRoundBets[data.color] < 0) currentRoundBets[data.color] = 0;
+                
                 document.getElementById(`bet-${data.color}`).innerText = currentRoundBets[data.color];
+                renderCardChip(data.color, currentRoundBets[data.color]);
+
                 if(currentRoundBets[data.color] === 0) document.getElementById(`card-${data.color}`).classList.remove('has-bet');
                 showToast(`Undone ${data.amount} on ${data.color}`); 
             }
         });
-        socket.on('bets_cleared', () => { currentRoundBets = {}; document.querySelectorAll('.bet-card').forEach(c => { c.classList.remove('has-bet'); }); document.querySelectorAll('.card-amount').forEach(s => s.innerText = '0'); });
-        socket.on('game_reset', () => { currentRoundBets = {}; document.querySelectorAll('.bet-card').forEach(c => { c.classList.remove('has-bet'); }); document.querySelectorAll('.card-amount').forEach(s => s.innerText = '0'); });
+
+        socket.on('bets_cleared', () => { 
+            currentRoundBets = {}; 
+            document.querySelectorAll('.bet-card').forEach(c => { c.classList.remove('has-bet'); }); 
+            document.querySelectorAll('.card-amount').forEach(s => s.innerText = '0'); 
+            // Clear all visual chips
+            for(let k in activeChips) { activeChips[k].remove(); }
+            activeChips = {};
+        });
+
+        socket.on('game_reset', () => { 
+            currentRoundBets = {}; 
+            document.querySelectorAll('.bet-card').forEach(c => { c.classList.remove('has-bet'); }); 
+            document.querySelectorAll('.card-amount').forEach(s => s.innerText = '0'); 
+            // Clear all visual chips
+            for(let k in activeChips) { activeChips[k].remove(); }
+            activeChips = {};
+        });
 
         socket.on('countdown_beep', (t) => { if(t <= 3) playCountdown(); });
         socket.on('timer_update', (t) => {
@@ -408,23 +569,14 @@
         socket.on('music_sync', (data) => {
             const titleEl = document.getElementById('musicTitle');
             const artistEl = document.getElementById('musicArtist');
-            
-            // Set Title & Artist
             let titleText = data.title || "Waiting for DJ...";
             titleEl.innerText = titleText;
             artistEl.innerText = data.artist || "";
-
-            // Marquee Logic
-            if(titleText.length > 20) titleEl.className = "music-title marquee";
-            else titleEl.className = "music-title";
-
+            if(titleText.length > 20) titleEl.className = "music-title marquee"; else titleEl.className = "music-title";
             if(data.url && bgMusic.src !== data.url) bgMusic.src = data.url;
             if(data.playing) { if(Math.abs(bgMusic.currentTime - data.seek) > 2) bgMusic.currentTime = data.seek; bgMusic.play().catch(e=>{}); } else { bgMusic.pause(); }
         });
-        socket.on('metadata_update', (data) => { 
-            document.getElementById('musicTitle').innerText = data.title || "Waiting..."; 
-            document.getElementById('musicArtist').innerText = data.artist || ""; 
-        });
+        socket.on('metadata_update', (data) => { document.getElementById('musicTitle').innerText = data.title || "Waiting..."; document.getElementById('musicArtist').innerText = data.artist || ""; });
         socket.on('music_track_changed', (data) => { bgMusic.src = data.url; bgMusic.play(); });
 
         function switchChat(type) {
