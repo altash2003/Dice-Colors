@@ -1,7 +1,6 @@
 {
-  "name": "my-casino-game",
+  "name": "railway-color-game",
   "version": "1.0.0",
-  "description": "Live roulette simulator",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
